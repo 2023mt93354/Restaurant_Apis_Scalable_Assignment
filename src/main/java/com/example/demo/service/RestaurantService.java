@@ -1,32 +1,39 @@
 package com.example.demo.service;
 
 
+import com.example.demo.dao.Orders_db_repo;
 import com.example.demo.dao.RestaurantDB;
+import com.example.demo.model.Orders;
 import com.example.demo.model.Restaurant;
-import com.example.demo.service.login.JwtTokenService;
+//import com.example.demo.service.login.JwtTokenService;
 import com.example.demo.serviceInterface.RestaurantServiceInterface;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+//import org.springframework.security.authentication.AuthenticationManager;
+//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+//import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class RestaurantService implements RestaurantServiceInterface {
+    //    @Autowired
+//    JwtTokenService jwtTokenService;
+//
+//    @Autowired
+//    AuthenticationManager authenticationManager;
     @Autowired
-    JwtTokenService jwtTokenService;
-
-    @Autowired
-    AuthenticationManager authenticationManager;
+    Orders_db_repo ordersRepository;
 
     @Autowired
     RestaurantDB restaurantDB;
 
-    private BCryptPasswordEncoder encoder=new BCryptPasswordEncoder(12);
+    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     @Override
     public List<Restaurant> getAllRestaurants() {
@@ -40,15 +47,15 @@ public class RestaurantService implements RestaurantServiceInterface {
         return restaurantDB.save(restaurant);
     }
 
-    @Override
-    public String verify(Restaurant restaurant) {
-        Authentication authentication= authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken
-                        (restaurant.getUsername(),restaurant.getPassword()));
-
-        if(authentication.isAuthenticated()) return jwtTokenService.generateJwtToken(restaurant.getUsername());
-        return "failed";
-    }
+//    @Override
+//    public String verify(Restaurant restaurant) {
+//        Authentication authentication= authenticationManager
+//                .authenticate(new UsernamePasswordAuthenticationToken
+//                        (restaurant.getUsername(),restaurant.getPassword()));
+//
+//        if(authentication.isAuthenticated()) return jwtTokenService.generateJwtToken(restaurant.getUsername());
+//        return "failed";
+//    }
 
     @Override
     public Restaurant getRestaurantById(String identifier) {
@@ -104,20 +111,14 @@ public class RestaurantService implements RestaurantServiceInterface {
         if (updatedRestaurant.getMenus() != null && !updatedRestaurant.getMenus().isEmpty()) {
             for (Restaurant.Menu updatedMenu : updatedRestaurant.getMenus()) {
                 // Find the existing menu by ID
-                Restaurant.Menu existingMenu = existingRestaurant.getMenus().stream()
-                        .filter(menu -> menu.getId().equals(updatedMenu.getId()))
-                        .findFirst()
-                        .orElse(null);
+                Restaurant.Menu existingMenu = existingRestaurant.getMenus().stream().filter(menu -> menu.getId().equals(updatedMenu.getId())).findFirst().orElse(null);
 
                 if (existingMenu != null) {
                     // Update menu items if they exist in the updated request
                     if (updatedMenu.getMenuItems() != null && !updatedMenu.getMenuItems().isEmpty()) {
                         for (Restaurant.Menu.MenuItem updatedMenuItem : updatedMenu.getMenuItems()) {
                             // Find existing menu item by ID (or name, if you don't have IDs for items)
-                            Restaurant.Menu.MenuItem existingMenuItem = existingMenu.getMenuItems().stream()
-                                    .filter(item -> item.getName().equals(updatedMenuItem.getName()))
-                                    .findFirst()
-                                    .orElse(null);
+                            Restaurant.Menu.MenuItem existingMenuItem = existingMenu.getMenuItems().stream().filter(item -> item.getName().equals(updatedMenuItem.getName())).findFirst().orElse(null);
 
                             if (existingMenuItem != null) {
                                 existingMenuItem.setPrice(updatedMenuItem.getPrice());
@@ -137,7 +138,6 @@ public class RestaurantService implements RestaurantServiceInterface {
         Restaurant updated_restaurant = restaurantDB.save(existingRestaurant);
         return updated_restaurant;
     }
-
 
 
     @Override
@@ -191,10 +191,7 @@ public class RestaurantService implements RestaurantServiceInterface {
         System.out.println(updatedMenu);
         System.out.println(updatedMenu.getMenuItems());
         // Find the menu by ID within the restaurant's menus
-        Restaurant.Menu existingMenu = existingRestaurant.getMenus().stream()
-                .filter(menu -> menu.getId().equals(updatedMenu.getId()))
-                .findFirst()
-                .orElse(null);
+        Restaurant.Menu existingMenu = existingRestaurant.getMenus().stream().filter(menu -> menu.getId().equals(updatedMenu.getId())).findFirst().orElse(null);
 
         if (existingMenu != null) {
             // Update the menu items
@@ -207,6 +204,7 @@ public class RestaurantService implements RestaurantServiceInterface {
         // Save the updated restaurant back to the repository
         return restaurantDB.save(existingRestaurant);
     }
+
     @Override
     public Restaurant deleteMenu(String identifier, String menuId) {
         Restaurant existingRestaurant = null;
@@ -223,10 +221,7 @@ public class RestaurantService implements RestaurantServiceInterface {
         }
 
         // Find the menu to delete by its ID
-        Restaurant.Menu existingMenu = existingRestaurant.getMenus().stream()
-                .filter(menu -> menu.getId().equals(menuId))
-                .findFirst()
-                .orElse(null);
+        Restaurant.Menu existingMenu = existingRestaurant.getMenus().stream().filter(menu -> menu.getId().equals(menuId)).findFirst().orElse(null);
 
         if (existingMenu != null) {
             // Remove the menu
@@ -237,5 +232,23 @@ public class RestaurantService implements RestaurantServiceInterface {
 
         // Save the updated restaurant back to the repository
         return restaurantDB.save(existingRestaurant);
+    }
+
+    @Override
+    public String updateOrderStatus(String orderId, String statusPayload) throws JsonProcessingException {
+        List<String> ALLOWED_STATUSES = Arrays.asList("Preparation Done", "Pending", "Waiting for Delivery Partner", "Delivery Partner Arrived", "Delivery Partner on Transit", "Delivered");
+//        String status = statusPayload.trim().replace("\"", ""); // Clean the raw payload (if JSON-like string is passed)
+        String status = new ObjectMapper().readTree(statusPayload).get("status").asText();
+
+        if (!ALLOWED_STATUSES.contains(status)) {
+            throw new IllegalArgumentException("Invalid status provided");
+        }
+
+        Orders order = ordersRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+
+        order.setOrderStatus(status);
+        ordersRepository.save(order);
+
+        return "Order status updated to: " + status;
     }
 }
