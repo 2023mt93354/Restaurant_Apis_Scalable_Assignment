@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Restaurant;
 import com.example.demo.serviceInterface.RestaurantServiceInterface;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,20 +22,24 @@ public class RestaurantController {
     @Autowired
     RestaurantServiceInterface restaurantInt;
 
-    @GetMapping("/get-all-restaurants")
-    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
-        return ResponseEntity.ok(restaurantInt.getAllRestaurants());
-    }
+//    @GetMapping("/get-all-restaurants")
+//    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
+//        return ResponseEntity.ok(restaurantInt.getAllRestaurants());
+//    }
+@GetMapping("/get-all-restaurants")
+public ResponseEntity<List<Restaurant>> getAllRestaurants() {
+    return ResponseEntity.ok(restaurantInt.getAllRestaurants());
+}
 
-    @PostMapping("/register")
-    public ResponseEntity<Restaurant> addNewRestaurant(@RequestBody Restaurant restaurant) {
-        return new ResponseEntity<>(restaurantInt.addNewRestaurant(restaurant), HttpStatus.CREATED);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Restaurant restaurant) {
-        return new ResponseEntity<>(restaurantInt.verify(restaurant), HttpStatus.ACCEPTED);
-    }
+//    @PostMapping("/register")
+//    public ResponseEntity<Restaurant> addNewRestaurant(@RequestBody Restaurant restaurant) {
+//        return new ResponseEntity<>(restaurantInt.addNewRestaurant(restaurant), HttpStatus.CREATED);
+//    }
+//
+//    @PostMapping("/login")
+//    public ResponseEntity<String> login(@RequestBody Restaurant restaurant) {
+//        return new ResponseEntity<>(restaurantInt.verify(restaurant), HttpStatus.ACCEPTED);
+//    }
 
 
     @GetMapping("/{identifier}")
@@ -94,4 +99,13 @@ public class RestaurantController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Restaurant or Menu not found
         }
     }
+    @PatchMapping("/status-update/{orderId}")
+    public ResponseEntity<String> updateOrderStatus(
+            @PathVariable String orderId,
+            @RequestBody String statusPayload) throws JsonProcessingException {
+
+        return ResponseEntity.ok(restaurantInt.updateOrderStatus(orderId, statusPayload));
+    }
+
+
 }
