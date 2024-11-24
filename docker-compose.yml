@@ -1,0 +1,65 @@
+#
+#services:
+#  eureka-server:
+#    image: kingkakorot/eureka_service_image:latest
+#    ports:
+#      - "8761:8761"
+#    networks:
+#      - my-network
+#
+#  customer-service:
+#    image: kingkakorot/customer_service_image:latest
+#    environment:
+#      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+#    depends_on:
+#      - eureka-server
+#    networks:
+#      - my-network
+#
+#  restaurant-service:
+#    image: kingkakorot/restaurant_service_image:latest
+#    environment:
+#      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+#    depends_on:
+#      - eureka-server
+#    networks:
+#      - my-network
+#
+#networks:
+#  my-network:
+#    driver: bridge
+
+
+services:
+  eureka-server:
+    image: kingkakorot/eureka_service_image:latest
+    ports:
+      - "8761:8761"
+    networks:
+      - my-network
+
+  customer-service:
+    image: kingkakorot/customer_service_image:latest
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+    ports:
+      - "8082:8082"
+    networks:
+      - my-network
+
+  restaurant-service:
+    image: kingkakorot/restaurant_service_image:latest
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+    ports:
+      - "8081:8081"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
