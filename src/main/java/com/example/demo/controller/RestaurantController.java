@@ -12,43 +12,29 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/restaurant")
-@Tag(name="restaurant")
+@Tag(name = "restaurant")
 public class RestaurantController {
 
     @Autowired
     RestaurantServiceInterface restaurantInt;
 
-//    @GetMapping("/get-all-restaurants")
-//    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
-//        return ResponseEntity.ok(restaurantInt.getAllRestaurants());
-//    }
-@GetMapping("/get-all-restaurants")
-public ResponseEntity<List<Restaurant>> getAllRestaurants() {
-    return ResponseEntity.ok(restaurantInt.getAllRestaurants());
-}
 
-//    @PostMapping("/register")
-//    public ResponseEntity<Restaurant> addNewRestaurant(@RequestBody Restaurant restaurant) {
-//        return new ResponseEntity<>(restaurantInt.addNewRestaurant(restaurant), HttpStatus.CREATED);
-//    }
-//
-//    @PostMapping("/login")
-//    public ResponseEntity<String> login(@RequestBody Restaurant restaurant) {
-//        return new ResponseEntity<>(restaurantInt.verify(restaurant), HttpStatus.ACCEPTED);
-//    }
+    @GetMapping("/get-all-restaurants")
+    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
+        return ResponseEntity.ok(restaurantInt.getAllRestaurants());
+    }
 
 
     @GetMapping("/{identifier}")
     public ResponseEntity<Restaurant> getRestaurantById(@PathVariable String identifier) {
-      Restaurant restaurant = restaurantInt.getRestaurantById(identifier);
+        Restaurant restaurant = restaurantInt.getRestaurantById(identifier);
         if (restaurant != null) {
-            return ResponseEntity.ok(restaurant); // Menu deleted successfully
+            return ResponseEntity.ok(restaurant);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Restaurant or Menu not found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
@@ -61,8 +47,6 @@ public ResponseEntity<List<Restaurant>> getAllRestaurants() {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
-
-
 
 
     @GetMapping("/menus/{identifier}")
@@ -80,6 +64,7 @@ public ResponseEntity<List<Restaurant>> getAllRestaurants() {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
+
     @PutMapping("/add-menu/{identifier}")
     public ResponseEntity<Restaurant> updateMenu(@PathVariable String identifier, @RequestBody Restaurant.Menu updatedMenu) {
         Restaurant updatedRestaurant = restaurantInt.updateMenu(identifier, updatedMenu);
@@ -94,11 +79,12 @@ public ResponseEntity<List<Restaurant>> getAllRestaurants() {
         Restaurant updatedRestaurant = restaurantInt.deleteMenu(identifier, menuId);
 
         if (updatedRestaurant != null) {
-            return ResponseEntity.ok(updatedRestaurant); // Menu deleted successfully
+            return ResponseEntity.ok(updatedRestaurant);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Restaurant or Menu not found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
     @PatchMapping("/status-update/{orderId}")
     public ResponseEntity<String> updateOrderStatus(
             @PathVariable String orderId,
